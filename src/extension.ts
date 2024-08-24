@@ -28,13 +28,46 @@ export function activate(context: vscode.ExtensionContext) {
         ];
 
         const files = [
-            { path: `__init__.py`, content: `# Initialization for ${agentName}` },
-            { path: `utils/__init__.py`, content: `# Initialization for utilities in ${agentName}` },
-            { path: `utils/tools.py`, content: `# Tools for your graph in ${agentName}` },
-            { path: `utils/nodes.py`, content: `# Node functions for your graph in ${agentName}` },
-            { path: `utils/state.py`, content: `# State definition of your graph in ${agentName}` },
-            { path: `requirements.txt`, content: `# Package dependencies for ${agentName}` },
-            { path: `agent.py`, content: `# Code for constructing your graph in ${agentName}` },
+            { path: `utils/tools.py`, content: `
+                # Tools for your graph in ${agentName}
+                ` 
+            },
+            { path: `utils/nodes.py`, content: `
+                from ${agentName}.utils.state import GraphState
+                
+                def agent(state: GraphState):
+                    return state
+                `
+            },
+            { path: `utils/state.py`, content: `
+                from typing import TypedDict
+
+                class GraphState(TypedDict):
+                    # The state of the graph
+                    pass
+                `
+            },
+            { path: `requirements.txt`, content: `
+                langchain_community
+                langchain_openai
+                langgraph
+                `
+            },
+            { path: `agent.py`, content: `
+                from langgraph.graph import StateGraph, START, END
+                from ${agentName}.utils.state import GraphState
+
+                workflow = StateGraph(GraphState)
+
+                # ----------------------------------------
+                #
+                # Define your graph here
+                #
+                # ----------------------------------------
+
+                graph = workflow.compile()
+                `
+            },
         ];
 
         try {
