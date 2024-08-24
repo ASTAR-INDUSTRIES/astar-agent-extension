@@ -17,3 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Command `Create Langgraph Structure` will not create `__init__.py` files.
 - The files will now be created with boilerplate code.
+
+## [0.0.3] - 2024-08-24
+
+### Added
+- Bug fix in file creation.
+- Icon added
