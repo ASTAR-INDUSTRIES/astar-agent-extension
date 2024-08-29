@@ -1,18 +1,94 @@
-"use strict";var l=Object.create;var c=Object.defineProperty;var u=Object.getOwnPropertyDescriptor;var w=Object.getOwnPropertyNames;var y=Object.getPrototypeOf,S=Object.prototype.hasOwnProperty;var v=(t,n)=>{for(var e in n)c(t,e,{get:n[e],enumerable:!0})},g=(t,n,e,i)=>{if(n&&typeof n=="object"||typeof n=="function")for(let o of w(n))!S.call(t,o)&&o!==e&&c(t,o,{get:()=>n[o],enumerable:!(i=u(n,o))||i.enumerable});return t};var f=(t,n,e)=>(e=t!=null?l(y(t)):{},g(n||!t||!t.__esModule?c(e,"default",{value:t,enumerable:!0}):e,t)),E=t=>g(c({},"__esModule",{value:!0}),t);var k={};v(k,{activate:()=>x,deactivate:()=>G});module.exports=E(k);var r=f(require("vscode")),a=f(require("fs")),h=f(require("path"));function x(t){let n=r.commands.registerCommand("createLanggraphStructure",async()=>{let e=await r.window.showInputBox({prompt:"Enter the name of the graph/agent",placeHolder:"AgentName"});if(!e){r.window.showErrorMessage("Agent name is required!");return}let i=r.workspace.rootPath;if(!i){r.window.showErrorMessage("No folder or workspace opened");return}let o=h.join(i,e),d=["utils"],m=[{path:"utils/tools.py",content:`# Tools for your graph in ${e}
-`},{path:"utils/nodes.py",content:`from ${e}.utils.state import GraphState
+"use strict";
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/extension.ts
+var extension_exports = {};
+__export(extension_exports, {
+  activate: () => activate,
+  deactivate: () => deactivate
+});
+module.exports = __toCommonJS(extension_exports);
+var vscode = __toESM(require("vscode"));
+var fs = __toESM(require("fs"));
+var path = __toESM(require("path"));
+var import_child_process = require("child_process");
+function activate(context) {
+  let disposable = vscode.commands.registerCommand("createLanggraphStructure", async () => {
+    const agentName = await vscode.window.showInputBox({
+      prompt: "Enter the name of the graph/agent",
+      placeHolder: "AgentName"
+    });
+    if (!agentName) {
+      vscode.window.showErrorMessage("Agent name is required!");
+      return;
+    }
+    const rootPath = vscode.workspace.rootPath;
+    if (!rootPath) {
+      vscode.window.showErrorMessage("No folder or workspace opened");
+      return;
+    }
+    const agentFolderPath = path.join(rootPath, agentName);
+    const folders = ["utils"];
+    const files = [
+      {
+        path: `utils/tools.py`,
+        content: `# Tools for your graph in ${agentName}
+`
+      },
+      {
+        path: `utils/nodes.py`,
+        content: `from ${agentName}.utils.state import GraphState
 
 def agent(state: GraphState):
     return state
-`},{path:"utils/state.py",content:`from typing import TypedDict
+`
+      },
+      {
+        path: `utils/state.py`,
+        content: `from typing import TypedDict
 
 class GraphState(TypedDict):
     # The state of the graph
     pass
-`},{path:"requirements.txt",content:`langchain_community
+`
+      },
+      {
+        path: `requirements.txt`,
+        content: `langchain_community
 langchain_openai
 langgraph
-`},{path:"agent.py",content:`from langgraph.graph import StateGraph, START, END
-from ${e}.utils.state import GraphState
+`
+      },
+      {
+        path: `agent.py`,
+        content: `from langgraph.graph import StateGraph, START, END
+from ${agentName}.utils.state import GraphState
 
 workflow = StateGraph(GraphState)
 
@@ -23,4 +99,65 @@ workflow = StateGraph(GraphState)
 # ----------------------------------------
 
 graph = workflow.compile()
-`}];try{a.existsSync(o)||a.mkdirSync(o),d.forEach(s=>{let p=h.join(o,s);a.existsSync(p)||a.mkdirSync(p)}),m.forEach(s=>{let p=h.join(o,s.path);a.writeFileSync(p,s.content)}),r.window.showInformationMessage(`Langgraph structure created for ${e}`)}catch(s){r.window.showErrorMessage(`Error creating langgraph structure: ${s.message}`)}});t.subscriptions.push(n)}function G(){}0&&(module.exports={activate,deactivate});
+`
+      }
+    ];
+    try {
+      if (!fs.existsSync(agentFolderPath)) {
+        fs.mkdirSync(agentFolderPath);
+      }
+      folders.forEach((folder) => {
+        const folderPath = path.join(agentFolderPath, folder);
+        if (!fs.existsSync(folderPath)) {
+          fs.mkdirSync(folderPath);
+        }
+      });
+      files.forEach((file) => {
+        const filePath = path.join(agentFolderPath, file.path);
+        fs.writeFileSync(filePath, file.content);
+      });
+      vscode.window.showInformationMessage(`Langgraph structure created for ${agentName}`);
+    } catch (err) {
+      vscode.window.showErrorMessage(`Error creating langgraph structure: ${err.message}`);
+    }
+  });
+  let saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
+    const fileName = path.basename(document.fileName);
+    if (fileName === "agent.py") {
+      const agentFolderPath = path.dirname(document.fileName);
+      const agentName = path.basename(agentFolderPath);
+      const outputFilePath = path.join(agentFolderPath, "graph.png");
+      const scriptPath = path.join(context.extensionPath, "scripts", "display_graph.py");
+      try {
+        const command = `python ${scriptPath} ${document.fileName} ${outputFilePath}`;
+        (0, import_child_process.exec)(command, (error, stdout, stderr) => {
+          if (error) {
+            vscode.window.showErrorMessage(`Could not create graph image: ${error.message}`);
+            return;
+          }
+          if (stderr) {
+            vscode.window.showErrorMessage(`Python stderr: ${stderr}`);
+            return;
+          }
+          if (fs.existsSync(outputFilePath)) {
+            vscode.window.showInformationMessage(`Graph image generated for ${agentName}: ${outputFilePath}`);
+          } else {
+            vscode.window.showErrorMessage("Failed to create the graph image.");
+          }
+        });
+      } catch (err) {
+        vscode.window.showErrorMessage(`Error running graph generation: ${err.message}`);
+      }
+    }
+  });
+  context.subscriptions.push(disposable);
+  context.subscriptions.push(saveDisposable);
+}
+function deactivate() {
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  activate,
+  deactivate
+});
+//# sourceMappingURL=extension.js.map

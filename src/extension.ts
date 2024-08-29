@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { exec } from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('createLanggraphStructure', async () => {
@@ -83,7 +84,45 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    let saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+        const fileName = path.basename(document.fileName);
+
+        // Check if the saved file is "agent.py"
+        if (fileName === 'agent.py') {
+            const agentFolderPath = path.dirname(document.fileName);
+            const agentName = path.basename(agentFolderPath);
+
+            const outputFilePath = path.join(agentFolderPath, 'graph.png');
+            const scriptPath = path.join(context.extensionPath, 'scripts', 'display_graph.py');
+
+            try {
+                const command = `python ${scriptPath} ${document.fileName} ${outputFilePath}`;
+
+                exec(command, (error, stdout, stderr) => {
+                    if (error) {
+                        vscode.window.showErrorMessage(`Could not create graph image: ${error.message}`);
+                        return;
+                    }
+                    if (stderr) {
+                        vscode.window.showErrorMessage(`Python stderr: ${stderr}`);
+                        return;
+                    }
+
+                    if (fs.existsSync(outputFilePath)) {
+                        
+                        vscode.window.showInformationMessage(`Graph image generated for ${agentName}: ${outputFilePath}`);
+                    } else {
+                        vscode.window.showErrorMessage("Failed to create the graph image.");
+                    }
+                });
+            } catch (err) {
+                vscode.window.showErrorMessage(`Error running graph generation: ${(err as Error).message}`);
+            }
+        }
+    });
+
     context.subscriptions.push(disposable);
+    context.subscriptions.push(saveDisposable);
 }
 
 export function deactivate() {}
